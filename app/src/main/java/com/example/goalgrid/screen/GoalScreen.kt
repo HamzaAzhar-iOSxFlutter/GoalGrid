@@ -14,8 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -33,20 +31,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.goalgrid.components.AppButton
 import com.example.goalgrid.components.InputField
 import com.example.goalgrid.model.Goals
+import java.time.LocalDateTime
 
 @Composable
-fun GoalScreen() {
-        val goals = remember {
-        mutableStateListOf<Goals>()
-    }
-
-    BuildTopForm(goals = goals)
+fun GoalScreen(goalsViewModel: GoalsViewModel) {
+    BuildTopForm(viewModel = goalsViewModel)
 }
 
 @Composable
-fun BuildTopForm(goals: MutableList<Goals>, callback: @Composable () -> Unit = {}) {
+fun BuildTopForm(viewModel: GoalsViewModel, callback: @Composable () -> Unit = {}) {
 
     val titleTextFieldState = remember {
         mutableStateOf("")
@@ -77,27 +74,23 @@ fun BuildTopForm(goals: MutableList<Goals>, callback: @Composable () -> Unit = {
             isSingleLine = true
         )
 
-        Button(
-            onClick = {
-                if (titleTextFieldState.value.isNotEmpty() && descriptionTextFieldState.value.isNotEmpty()) {
-                    goals.add(Goals(title = titleTextFieldState.value, description = descriptionTextFieldState.value))
-                }
+        AppButton(buttonTitle = "Save") {
+            if (titleTextFieldState.value.isNotEmpty() && descriptionTextFieldState.value.isNotEmpty()) {
+                viewModel.addGoals(Goals(title = titleTextFieldState.value, description = descriptionTextFieldState.value))
 
-                titleTextFieldState.value = ""
-                descriptionTextFieldState.value = ""
-            },
-            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onBackground)
-        ) {
-            Text("Save")
+            }
+
+            titleTextFieldState.value = ""
+            descriptionTextFieldState.value = ""
         }
 
-        AnimatedVisibility(!goals.isEmpty()) {
+        AnimatedVisibility(!viewModel.goals.isEmpty()) {
             Divider(modifier = Modifier.padding(top = 10.dp))
             LazyColumn(
                 modifier = Modifier
                     .padding(top = 20.dp)
             ) {
-                items(goals) { goal ->
+                items(viewModel.goals) { goal ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -130,7 +123,7 @@ fun BuildTopForm(goals: MutableList<Goals>, callback: @Composable () -> Unit = {
 
                             IconButton(
                                 onClick = {
-                                    goals.remove(goal)
+                                    viewModel.removeGoals(goal)
                                 },
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
@@ -160,10 +153,7 @@ fun BuildTopForm(goals: MutableList<Goals>, callback: @Composable () -> Unit = {
 @Preview(showBackground = true)
 @Composable
 fun PreviewGoalScreen() {
-    BuildTopForm(
-        goals = mutableListOf(
-            Goals(title = "Preview Title 1", description = "Preview Description 1"),
-            Goals(title = "Preview Title 2", description = "Preview Description 2")
-        )
-    )
+  BuildTopForm(viewModel = GoalsViewModel()) {
+
+  }
 }
