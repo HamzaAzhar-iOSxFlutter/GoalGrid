@@ -1,5 +1,8 @@
 package com.example.goalgrid.screen
 
+import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,19 +26,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.goalgrid.components.AppButton
 import com.example.goalgrid.components.InputField
 import com.example.goalgrid.model.Goals
-import java.time.LocalDateTime
 
 @Composable
 fun GoalScreen(goalsViewModel: GoalsViewModel) {
@@ -44,6 +44,8 @@ fun GoalScreen(goalsViewModel: GoalsViewModel) {
 
 @Composable
 fun BuildTopForm(viewModel: GoalsViewModel, callback: @Composable () -> Unit = {}) {
+
+    val goalsList = viewModel.goalsList.collectAsState().value
 
     val titleTextFieldState = remember {
         mutableStateOf("")
@@ -76,21 +78,24 @@ fun BuildTopForm(viewModel: GoalsViewModel, callback: @Composable () -> Unit = {
 
         AppButton(buttonTitle = "Save") {
             if (titleTextFieldState.value.isNotEmpty() && descriptionTextFieldState.value.isNotEmpty()) {
-                viewModel.addGoals(Goals(title = titleTextFieldState.value, description = descriptionTextFieldState.value))
-
+                val time = Calendar.getInstance().time
+                val formatter = SimpleDateFormat("E MMM dd h:mm a")
+                val current = formatter.format(time)
+                viewModel.addGoals(Goals(title = titleTextFieldState.value, description = descriptionTextFieldState.value, dateTime = current))
+                Log.d("TAG", "the count is ${goalsList.count()}")
             }
 
             titleTextFieldState.value = ""
             descriptionTextFieldState.value = ""
         }
 
-        AnimatedVisibility(!viewModel.goals.isEmpty()) {
+        AnimatedVisibility(goalsList.isNotEmpty()) {
             Divider(modifier = Modifier.padding(top = 10.dp))
             LazyColumn(
                 modifier = Modifier
                     .padding(top = 20.dp)
             ) {
-                items(viewModel.goals) { goal ->
+                items(goalsList) { goal ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -119,7 +124,14 @@ fun BuildTopForm(viewModel: GoalsViewModel, callback: @Composable () -> Unit = {
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Light,
                                     color =  MaterialTheme.colorScheme.background)
+
+                                Text(
+                                    goal.dateTime,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Light,
+                                    color =  MaterialTheme.colorScheme.background)
                             }
+
 
                             IconButton(
                                 onClick = {
@@ -150,10 +162,10 @@ fun BuildTopForm(viewModel: GoalsViewModel, callback: @Composable () -> Unit = {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewGoalScreen() {
-  BuildTopForm(viewModel = GoalsViewModel()) {
-
-  }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewGoalScreen() {
+//  BuildTopForm(viewModel = GoalsViewModel(repository = Repository(goalsDatabaseDao = GoalsDatabaseDao))) {
+//
+//  }
+//}

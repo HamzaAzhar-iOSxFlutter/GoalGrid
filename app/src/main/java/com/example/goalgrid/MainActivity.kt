@@ -23,8 +23,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.goalgrid.screen.GoalScreen
 import com.example.goalgrid.screen.GoalsViewModel
 import com.example.goalgrid.ui.theme.GoalGridTheme
-import java.util.Date
+import dagger.hilt.android.AndroidEntryPoint
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val goalsViewModel by viewModels<GoalsViewModel>()
 
